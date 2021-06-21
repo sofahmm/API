@@ -1,17 +1,46 @@
 ﻿// OMdB
 // KSofia 220
-
 using System;
 using System.IO;
-using System.Net;
+using Telegram.Bot;
 using Newtonsoft.Json;
 using lib_pars;
+using System.Net;
+using System.Collections.Generic;
 
-namespace OpenWeather
+namespace TelegramBot
 {
     class Program
     {
         static void Main(string[] args)
+        {
+
+            TelegramBotClient bot = new TelegramBotClient("1753600323:AAFvd9LuJq7Cew9HlfaJzVqDjo3rQAitwnI");
+
+            bot.OnMessage += (s, arg) =>
+            {
+                Console.WriteLine($"{arg.Message.Chat.FirstName}: {arg.Message.Text}");
+                
+
+                if(arg.Message.Text == "/start")
+                {
+                    bot.SendTextMessageAsync(arg.Message.Chat.Id, $"Ваш бот стартовал - введите название фильма"); 
+                }
+
+                else
+                {
+                    string result = Omdb(arg.Message.Text);
+                    bot.SendTextMessageAsync(arg.Message.Chat.Id, result);
+                }
+            };
+
+
+            bot.StartReceiving();
+            
+
+            Console.ReadKey();
+        }
+        public static string Omdb(string film)
         {
             var apikey = "9ee77822";
             var movie = "Split";
@@ -25,19 +54,17 @@ namespace OpenWeather
             if (httpStatusCode != HttpStatusCode.OK)
             {
                 Console.WriteLine(httpStatusCode);
-                return;
+                return null;
             }
-
+            Root OMdB;
             using (var streamReader = new StreamReader(response.GetResponseStream()))
             {
                 string result = streamReader.ReadToEnd();
                 Console.WriteLine(result);
-                var OMdB = JsonConvert.DeserializeObject<Root>(result);
+                OMdB = JsonConvert.DeserializeObject<Root>(result);
                 Console.WriteLine(OMdB.Website);
             }
-
+            return OMdB.Website;
         }
-        
     }
-    
 }
